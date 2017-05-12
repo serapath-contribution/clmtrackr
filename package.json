@@ -1,6 +1,6 @@
 {
   "name": "mccoder-clmtrackr",
-  "version": "1.0.17",
+  "version": "1.0.21",
   "description": "Javascript library for precise tracking of facial features via Constrained Local Models",
   "main": "clmtrackr.js",
   "author": "Audun Mathias Øygard <amoygard@gmail.com>",

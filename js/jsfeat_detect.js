@@ -15,11 +15,11 @@ var jsfeat_face = function(video, maxWorkSize, useWebWorkers) {
 
   if (useWebWorkers) {
     //Courtesy of stackoverflow
-    Worker.createURL = function(func_or_string){
-        var str = (typeof func_or_string === 'function')?func_or_string.toString():func_or_string;
-        var blob = new Blob(['\'use strict\';\nself.onmessage ='+str], { type: 'text/javascript' });
-        return window.URL.createObjectURL(blob);
-    };
+      Worker.createURL = function (func_or_string) {
+          var str = (typeof func_or_string === 'function') ? '(' + func_or_string.toString() + ')(self)' : '  self.onmessage = ' + func_or_string;
+          var blob = new Blob(['\'use strict\';\n' + str], {type: 'text/javascript'});
+          return window.URL.createObjectURL(blob);
+      };
 
     Worker.create = function(func_or_string){
       return new Worker(Worker.createURL(func_or_string));
@@ -34,25 +34,27 @@ var jsfeat_face = function(video, maxWorkSize, useWebWorkers) {
     var classifier = jsfeat.haar.frontalface;
   }
 
+    if (useWebWorkers) {
+        this.singleWorker = Worker.create(findFaceWorker);
+        this.singleWorker.addEventListener('message', function (e) {
+            this.faceDetected(e, this.lastCallback);
+            this.lastCallback = null;
+        }.bind(this), false);
+    }
+
   this.findFace = function (params, callback) {
     work_ctx.drawImage(video, 0, 0, work_canvas.width, work_canvas.height);
     var imageData = work_ctx.getImageData(0, 0, work_canvas.width, work_canvas.height);
 
     if (useWebWorkers) {
-      var worker = Worker.create(findFaceWorker);
-
-      worker.addEventListener('message', function (e) {
-        this.faceDetected(e, callback);
-        worker.terminate();
-      }.bind(this), false);
-
-      worker.postMessage({
-        w: work_canvas.width,
-        h: work_canvas.height,
-        videoWidth: videoWidth,
-        imageData:imageData,
-        params: params
-      });
+        this.lastCallback = callback;
+        this.singleWorker.postMessage({
+                                          w: work_canvas.width,
+                                          h: work_canvas.height,
+                                          videoWidth: videoWidth,
+                                          imageData: imageData,
+                                          params: params
+                                      });
     } else {
       jsfeat.imgproc.grayscale(imageData.data, work_canvas.width, work_canvas.height, img_u8);
 
