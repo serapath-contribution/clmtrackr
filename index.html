@@ -1,0 +1,60 @@
+<meta charset="utf-8">
+<body>
+  <script>
+    document.body.style = 'margin: 0;'
+    var select = document.createElement('div')
+    var routes =           {
+      example              : '',
+      classviewer          : 'classviewer',
+
+      clm_image            : 'Tracking in image',
+      clm_video            : 'Tracking in video',
+      facesubstitution     : 'Face substitution',
+      face_mask            : 'Face masking',
+      facedeform           : 'Realtime face deformation',
+      clm_emotiondetection : 'Emotion detection',
+      caricature           : 'Caricature'
+    }
+    var options = Object.keys(routes).map(makeOption).join('\n')
+    function makeOption (route) {
+      return `<option value=${route}>${routes[route]}</option>`
+    }
+    select.innerHTML = '<select>' + options + '</select>'
+    select.onchange = function (event) { location.hash = event.target.value }
+    document.body.appendChild(select)
+  </script>
+  <script>
+    window.onhashchange = router
+
+    ///////////////////////////////////////////////////////////////////////////
+    // @TODO: remove these lines - it's just for TESTING PURPOSES :-)
+    var test = 'classviewer'
+    document.querySelector('[value=' + test + ']').selected = 'selected'
+    location.hash = test
+    ///////////////////////////////////////////////////////////////////////////
+
+    router()
+    function router (event) {
+      var route = location.hash.slice(1) || 'example'
+      var iframe = document.createElement('iframe')
+      iframe.style = `
+        width: 100vw;
+        height: 95vh;
+        border: 0;
+        position: absolute;
+        bottom: 0;
+      `
+      document.body.appendChild(iframe)
+      var idocument = iframe.contentWindow.document
+      idocument.open()
+      idocument.write('<meta charset="utf-8">')
+      idocument.close()
+      var common = idocument.createElement("script")
+      common.src = 'bundle/common.js'
+      idocument.body.appendChild(common)
+      var script = idocument.createElement("script")
+      script.src = `bundle/${route}.bundle.js`
+      idocument.body.appendChild(script)
+    }
+  </script>
+</body>

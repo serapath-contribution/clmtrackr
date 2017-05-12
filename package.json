@@ -2,7 +2,7 @@
   "name": "mccoder-clmtrackr",
   "version": "1.0.21",
   "description": "Javascript library for precise tracking of facial features via Constrained Local Models",
-  "main": "clmtrackr.js",
+  "main": "src/clmtracker.js",
   "author": "Audun Mathias Øygard <amoygard@gmail.com>",
   "license": "MIT",
   "repository": {
@@ -10,8 +10,65 @@
     "url": "https://github.com/mccoder/clmtrackr.git"
   },
   "devDependencies": {
-    "grunt": "^1.0.1",
-    "grunt-contrib-concat": "^1.0.1",
-    "grunt-contrib-uglify": "^2.3.0"
+    "babel-plugin-yo-yoify": "^0.3.3",
+    "babel-preset-es2040": "^1.1.1",
+    "babelify": "^7.3.0",
+    "basename-cli": "^1.0.1",
+    "browserify-livereload": "^1.0.10",
+    "ecstatic": "^2.1.0",
+    "exorcist": "^0.4.0",
+    "factor-bundle": "^2.5.0",
+    "nodecat": "^1.0.0",
+    "notify-error": "^1.2.0",
+    "npm-run-all": "^4.0.2",
+    "onchange": "^3.2.1",
+    "standard": "^9.0.2",
+    "tap-notify": "^1.0.0",
+    "tape": "^4.6.3",
+    "uglify-js": "^2.8.18",
+    "uglifyify": "^3.0.4",
+    "watchify": "^3.9.0",
+    "yo-yoify": "^3.7.3"
+  },
+  "dependencies": {
+    "dat.gui": "github:serapath-contribution/dat.gui",
+    "jsfeat": "0.0.8",
+    "numeric": "^1.2.6"
+  },
+  "browserify": {
+    "transform": [
+      ["babelify", {
+        "sourceMapsAbsolute": false,
+        "sourceMaps": true,
+        "plugins": [["yo-yoify"]],
+        "presets": [["es2040"]]
+      }],
+      ["uglifyify"]
+    ],
+    "development": [
+      ["babelify", {
+        "sourceMapsAbsolute": false,
+        "sourceMaps": true,
+        "plugins": [["yo-yoify"]],
+        "presets": [["es2040"]]
+      }]
+    ]
+  },
+  "scripts": {
+    "serve": "ecstatic .",
+    "start": "npm-run-all -lpr serve watch monitor",
+    "minify": "uglifyjs --in-source-map inline --source-map-inline -c warnings=false",
+    "sourcemap": "exorcist --root ../ bundle/bundle.min.js.map > bundle/bundle.min.js",
+    "watch": "npm-run-all -lpr watch:*",
+    "@TODO:": "# switch X from 'transform' to 'development' in `watch:*` ... --transform-key=X",
+    "watch:module": "watchify --transform-key=transform src/clmtracker.js -vd --delay 0 -p [ browserify-livereload --port 3030 ] -o bundle/bundle.js",
+    "watcha:demo/classviewer": "watchify --transform-key=transform demo/classviewer.js -vd --delay 0 -p [ browserify-livereload --port 3031 ] -o bundle/bundle.js",
+    "watch:demo": "watchify --transform-key=transform demo/*.js -vd -p browserify-reload -p [ factor-bundle -o 'nodecat > bundle/`basename $FILE`.bundle.js' ] -o bundle/common.js",
+    "monitor": "onchange bundle.js -- npm-run-all lint test --silent",
+    "build": "npm-run-all -ls build:*",
+    "build:module": "browserify src/clmtracker.js -d | npm run minify --silent | npm run sourcemap",
+    "build:demo": "browserify demo/*.js -p [ factor-bundle -o 'nodecat > bundle/`basename $FILE`.bundle.js' ] > bundle/common.js",
+    "lint": "standard | notify-error",
+    "test": "echo 'no tests yet' # tape test | tap-notify"
   }
 }
